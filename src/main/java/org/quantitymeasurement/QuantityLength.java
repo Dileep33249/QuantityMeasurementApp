@@ -1,47 +1,51 @@
 package org.quantitymeasurement;
-
-import java.util.Objects;
-
 public class QuantityLength {
 
     private final double value;
     private final LengthUnit unit;
 
+    private static final double DELTA = 1e-6;
+
     public QuantityLength(double value, LengthUnit unit) {
-
-        if (Double.isNaN(value))
-            throw new IllegalArgumentException("Invalid value");
-
-        if (unit == null)
+        if (unit == null) {
             throw new IllegalArgumentException("Unit cannot be null");
-
+        }
         this.value = value;
         this.unit = unit;
     }
-
-    private double toBaseUnit() {
-        return unit.toFeet(value);
+    private double convertToInches() {
+        return this.value * this.unit.getConversionFactorToInches();
     }
 
+    /**
+     * Compares this QuantityLength with another for equality across units.
+     * Both values are converted to inches before comparison.
+     */
     @Override
     public boolean equals(Object obj) {
-
-        if (this == obj)
-            return true;
-
-        if (obj == null || getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
 
         QuantityLength other = (QuantityLength) obj;
-
-        return Double.compare(
-                this.toBaseUnit(),
-                other.toBaseUnit()
-        ) == 0;
+        return Math.abs(this.convertToInches() - other.convertToInches()) < DELTA;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(toBaseUnit());
+        long bits = Double.doubleToLongBits(Math.round(convertToInches() / DELTA) * DELTA);
+        return (int) (bits ^ (bits >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return "Quantity(" + value + ", " + unit + ")";
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public LengthUnit getUnit() {
+        return unit;
     }
 }

@@ -1,27 +1,22 @@
 package org.quantitymeasurement;
 public class QuantityMeasurementApp {
 
-    public static boolean compare(
-            double v1, LengthUnit u1,
-            double v2, LengthUnit u2) {
+    public static void main(String[] args) {
+        System.out.println("=== UC4: Extended Unit Support Demo ===\n");
 
-        QuantityLength q1 =
-                new QuantityLength(v1, u1);
-
-        QuantityLength q2 =
-                new QuantityLength(v2, u2);
-
-        return q1.equals(q2);
+        compare(new QuantityLength(1.0, LengthUnit.YARDS),  new QuantityLength(3.0, LengthUnit.FEET));
+        compare(new QuantityLength(1.0, LengthUnit.YARDS),  new QuantityLength(36.0, LengthUnit.INCHES));
+        compare(new QuantityLength(2.0, LengthUnit.YARDS),  new QuantityLength(2.0, LengthUnit.YARDS));
+        compare(new QuantityLength(2.0, LengthUnit.CENTIMETERS), new QuantityLength(2.0, LengthUnit.CENTIMETERS));
+        compare(new QuantityLength(1.0, LengthUnit.CENTIMETERS), new QuantityLength(0.393701, LengthUnit.INCHES));
+        compare(new QuantityLength(2.0, LengthUnit.YARDS),  new QuantityLength(6.0, LengthUnit.FEET));
+        compare(new QuantityLength(2.0, LengthUnit.YARDS),  new QuantityLength(72.0, LengthUnit.INCHES));
+        compare(new QuantityLength(1.0, LengthUnit.FEET),   new QuantityLength(12.0, LengthUnit.INCHES));
     }
 
-    public static void main(String[] args) {
-
-        System.out.println(
-                compare(1.0, LengthUnit.FEET,
-                        12.0, LengthUnit.INCH));
-
-        System.out.println(
-                compare(1.0, LengthUnit.INCH,
-                        1.0, LengthUnit.INCH));
+    private static void compare(QuantityLength a, QuantityLength b) {
+        boolean result = a.equals(b);
+        System.out.printf("Input:  %s and %s%n", a, b);
+        System.out.printf("Output: %s (%b)%n%n", result ? "Equal" : "Not Equal", result);
     }
 }
