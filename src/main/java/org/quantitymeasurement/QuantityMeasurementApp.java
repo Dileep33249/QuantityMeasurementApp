@@ -1,3 +1,4 @@
+package org.quantitymeasurement;
 import java.util.*;
 public class QuantityMeasurementApp {
     public static class Feet {
@@ -33,7 +34,7 @@ public class QuantityMeasurementApp {
             return feet1.equals(feet2);
         }
     }
-         
+
     public static void main(String [] args){
         Scanner sc =new Scanner(System.in);
 
