@@ -26,8 +26,10 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
     @Override
     public QuantityMeasurementDTO compareQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity) {
-        return execute(OperationType.COMPARE, thisQuantity, thatQuantity, (leftBase, rightBase, leftUnit, rightUnit) ->
-                resultWithString(String.valueOf(Double.compare(leftBase, rightBase) == 0)));
+        return execute(OperationType.COMPARE, thisQuantity, thatQuantity, (leftBase, rightBase, leftUnit, rightUnit) -> {
+            boolean equal = nearlyEqual(leftBase, rightBase);
+            return resultWithString(String.valueOf(equal));
+        });
     }
 
     @Override
@@ -55,17 +57,24 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
     @Override
     public QuantityMeasurementDTO multiplyQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity) {
-        return execute(OperationType.MULTIPLY, thisQuantity, thatQuantity, (leftBase, rightBase, leftUnit, ignored) ->
-                buildNumericResult(leftUnit, leftBase * rightBase));
+        return execute(OperationType.MULTIPLY, thisQuantity, thatQuantity, (leftBase, rightBase, leftUnit, ignored) -> {
+            double leftValue = leftUnit.fromBase(leftBase);
+            double rightValue = leftUnit.fromBase(rightBase);
+            double result = leftValue * rightValue;
+            return buildNumericResult(leftUnit, leftUnit.toBase(result));
+        });
     }
 
     @Override
     public QuantityMeasurementDTO divideQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity) {
         return execute(OperationType.DIVIDE, thisQuantity, thatQuantity, (leftBase, rightBase, leftUnit, ignored) -> {
-            if (Double.compare(rightBase, 0.0) == 0) {
+            double leftValue = leftUnit.fromBase(leftBase);
+            double rightValue = leftUnit.fromBase(rightBase);
+            if (Double.compare(rightValue, 0.0) == 0) {
                 throw new ArithmeticException("Divide by zero");
             }
-            return buildNumericResult(leftUnit, leftBase / rightBase);
+            double result = leftValue / rightValue;
+            return buildNumericResult(leftUnit, leftUnit.toBase(result));
         });
     }
 
@@ -97,6 +106,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
                                            QuantityDTO thisQuantity,
                                            QuantityDTO thatQuantity,
                                            OperationExecutor executor) {
+        boolean authenticated = isAuthenticated();
         try {
             validateCompatibleMeasurements(operationType, thisQuantity, thatQuantity);
             UnitDefinition leftUnit = UnitDefinition.from(thisQuantity.getUnit());
@@ -104,9 +114,15 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             double leftBase = leftUnit.toBase(thisQuantity.getValue());
             double rightBase = rightUnit.toBase(thatQuantity.getValue());
             QuantityMeasurementDTO result = executor.execute(leftBase, rightBase, leftUnit, rightUnit);
-            return persistSuccess(operationType, thisQuantity, thatQuantity, result);
+            result.setOperation(operationType.name().toLowerCase());
+            if (authenticated) {
+                return persistSuccess(operationType, thisQuantity, thatQuantity, result);
+            }
+            return result;
         } catch (RuntimeException ex) {
-            persistError(operationType, thisQuantity, thatQuantity, ex.getMessage());
+            if (authenticated) {
+                persistError(operationType, thisQuantity, thatQuantity, ex.getMessage());
+            }
             throw ex;
         }
     }
@@ -172,6 +188,13 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         return authentication.getName();
     }
 
+    private boolean isAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
     private double round(double value) {
         return Math.round(value * 10000.0) / 10000.0;
     }
@@ -180,6 +203,12 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         QuantityMeasurementDTO dto = new QuantityMeasurementDTO();
         dto.setResultString(value);
         return dto;
+    }
+
+    private boolean nearlyEqual(double left, double right) {
+        double diff = Math.abs(left - right);
+        double scale = Math.max(1.0, Math.max(Math.abs(left), Math.abs(right)));
+        return diff <= 1e-6 * scale;
     }
 
     @FunctionalInterface
