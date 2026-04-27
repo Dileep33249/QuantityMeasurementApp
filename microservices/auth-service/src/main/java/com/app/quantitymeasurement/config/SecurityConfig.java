@@ -30,12 +30,14 @@ public class SecurityConfig {
     private final GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler;
     private final PasswordEncoder passwordEncoder;
     private final List<String> allowedOrigins;
+    private final boolean googleOAuthEnabled;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
             AppUserDetailsService userDetailsService,
             GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler,
             PasswordEncoder passwordEncoder,
-            @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:5500,http://127.0.0.1:5500}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:5500,http://127.0.0.1:5500}") String allowedOrigins,
+            @Value("${app.oauth.google.enabled:false}") boolean googleOAuthEnabled) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.googleOAuth2SuccessHandler = googleOAuth2SuccessHandler;
@@ -44,6 +46,7 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toList();
+        this.googleOAuthEnabled = googleOAuthEnabled;
     }
 
     @Bean
@@ -59,8 +62,11 @@ public class SecurityConfig {
                                 "/api-docs/**")
                         .permitAll()
                         .anyRequest()
-                        .authenticated())
-                .oauth2Login(oauth -> oauth.successHandler(googleOAuth2SuccessHandler));
+                        .authenticated());
+
+        if (googleOAuthEnabled) {
+            http.oauth2Login(oauth -> oauth.successHandler(googleOAuth2SuccessHandler));
+        }
 
         http
                 .authenticationProvider(authenticationProvider())
