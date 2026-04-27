@@ -23,15 +23,15 @@ spring:
             allowCredentials: true
       routes:
         - id: auth-service
-          uri: "${AUTH_SERVICE_URL:http://localhost:8081}"
+          uri: "https://auth-service-production-026b.up.railway.app"
           predicates:
             - Path=/api/v1/auth/**
         - id: auth-service-oauth2
-          uri: "${AUTH_SERVICE_URL:http://localhost:8081}"
+          uri: "https://auth-service-production-026b.up.railway.app"
           predicates:
             - Path=/oauth2/**,/login/oauth2/**
         - id: quantity-measurement-service
-          uri: "${QUANTITY_SERVICE_URL:http://localhost:8082}"
+          uri: "https://quantity-measurement-service-production.up.railway.app"
           predicates:
             - Path=/api/v1/quantities/**
 
