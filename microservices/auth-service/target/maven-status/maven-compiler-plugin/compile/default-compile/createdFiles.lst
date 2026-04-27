@@ -1,0 +1,17 @@
+com\app\quantitymeasurement\dto\RegisterRequest.class
+com\app\quantitymeasurement\config\SecurityBeansConfig.class
+com\app\quantitymeasurement\service\AppUserDetailsService.class
+com\app\quantitymeasurement\dto\AuthResponse.class
+com\app\quantitymeasurement\controller\AuthController.class
+com\app\quantitymeasurement\exception\QuantityMeasurementException.class
+com\app\quantitymeasurement\service\AuthService.class
+com\app\quantitymeasurement\config\SecurityConfig.class
+com\app\quantitymeasurement\repository\AppUserRepository.class
+com\app\quantitymeasurement\AuthServiceApplication.class
+com\app\quantitymeasurement\dto\AuthRequest.class
+com\app\quantitymeasurement\security\JwtAuthenticationFilter.class
+com\app\quantitymeasurement\security\JwtService.class
+com\app\quantitymeasurement\exception\ApiErrorResponse.class
+com\app\quantitymeasurement\security\GoogleOAuth2SuccessHandler.class
+com\app\quantitymeasurement\exception\GlobalExceptionHandler.class
+com\app\quantitymeasurement\model\AppUserEntity.class
